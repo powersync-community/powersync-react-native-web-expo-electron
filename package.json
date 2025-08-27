@@ -8,9 +8,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "electron": "npm run build:web && tsc electron/main.js --outDir electron --target es2020 --module commonjs && electron electron/main.js",
-    "electron:dev": "concurrently \"npm run web\" \"wait-on http://localhost:8081 && electron electron/main.js\"",
-    "build:web": "expo export"
+    "build:web": "expo export --clear && node scripts/fix-index.js",
+    "electron:build": "npm run build:web && electron electron/main.js",
+    "electron:start": "electron electron/main.js"
   },
   "build": {
     "appId": "com.powersyncreactnativeexpoelectronweb",
@@ -79,6 +79,7 @@
     "electron-builder": "^26.0.12",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "fs": "^0.0.1-security",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
     "wait-on": "^8.0.4"
