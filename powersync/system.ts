@@ -21,6 +21,7 @@ export class System {
         this.powersync = new PowerSyncDatabase({
             schema: AppSchema,
             database: opSqlite,
+            logger: logger
         });
     }
 
