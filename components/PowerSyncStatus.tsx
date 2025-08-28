@@ -100,12 +100,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 12,
-    margin: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
     width: '100%',
   },
   title: {
@@ -170,7 +164,6 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: '#e0e0e0',
     borderRadius: 3,
-    overflow: 'hidden',
   },
   progressFill: {
     height: '100%',

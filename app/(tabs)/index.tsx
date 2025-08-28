@@ -1,9 +1,10 @@
-import { FlatList, SafeAreaView, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
+import { FlatList, SafeAreaView, TouchableOpacity, View, Text, TextInput, Alert, Platform } from 'react-native';
 import { LIST_TABLE, ListRecord, TODO_TABLE } from '@/powersync/AppSchema';
 import { useSystem } from '@/powersync/system';
-import { useQuery, useStatus } from '@/powersync/hooks';
-import { useEffect } from 'react';
+import { useQuery } from '@/powersync/hooks';
+import { useEffect, useState } from 'react';
 import PowerSyncStatus from '@/components/PowerSyncStatus';
+import { useRouter } from 'expo-router';
 
 const description = (total: number, completed: number = 0) => {
   return `${total - completed} pending, ${completed} completed`;
@@ -11,12 +12,13 @@ const description = (total: number, completed: number = 0) => {
 
 export default function HomeScreen() {
   const system = useSystem();
-  const status = useStatus();
+  const router = useRouter();
+  const [newListName, setNewListName] = useState("");
 
   useEffect(() => {
     system.init();
   }, []);
-  
+
   const { data: listRecords } = useQuery<ListRecord & { total_tasks: number; completed_tasks: number }>(`
     SELECT
       ${LIST_TABLE}.*, 
@@ -32,72 +34,113 @@ export default function HomeScreen() {
   `);
 
   const insertList = async () => {
+    if (!newListName.trim()) return; // don't insert empty names
     await system.powersync.execute(`
       INSERT INTO ${LIST_TABLE} (id, name, owner_id)
-      VALUES (uuid(), 'New List', ?);
-    `, [await system.connector.userId()]);
+      VALUES (uuid(), ?, ?);
+    `, [newListName, await system.connector.userId()]);
+    setNewListName(""); // clear input after inserting
+  };
+
+  const deleteList = async (listId: string) => {
+    await system.powersync.execute(`DELETE FROM ${LIST_TABLE} WHERE id = ?`, [listId]);
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, padding: 16 }}>
       <PowerSyncStatus />
-      <View style={{ flex: 1}}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold'}}>
-          Todo Counts Per List
-        </Text>
 
-        <View>
-          <TouchableOpacity style={{
-            backgroundColor: '#007AFF',
-            padding: 15,
-            borderRadius: 8,
-            marginBottom: 20,
-            alignItems: 'center'
-          }} onPress={insertList}>
-            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Insert List</Text>
-          </TouchableOpacity>
-        </View>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
+        Todo Lists
+      </Text>
 
-        <TouchableOpacity
-          onPress={async () => {
-            await system.powersync.disconnectAndClear();
-          }}
-          style={{
-            backgroundColor: '#007AFF',
-            padding: 15,
-            borderRadius: 8,
-            marginBottom: 20,
-            alignItems: 'center'
-          }}
-        >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Disconnect and Clear</Text>
-        </TouchableOpacity>
+      {/* Input for new list */}
+      <TextInput
+        placeholder="Enter new list name"
+        value={newListName}
+        onChangeText={setNewListName}
+        placeholderTextColor="#888"
+        style={{
+          borderWidth: 1,
+          borderColor: "#888",
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: Platform.OS === "ios" ? 12 : 8,
+          fontSize: 16,
+          marginBottom: 10,
+          color: "#000",
+          backgroundColor: "#fff",
+        }}
+      />
 
-        <FlatList
-          data={listRecords}
-          keyExtractor={(item) => item.id}
-          ListEmptyComponent={
-            <Text style={{ color: '#999', fontStyle: 'italic' }}>No lists found</Text>
-          }
-          renderItem={({ item: list }) => (
-            <View style={{
-              marginBottom: 20,
+      <TouchableOpacity
+        style={{
+          backgroundColor: '#007AFF',
+          padding: 15,
+          borderRadius: 8,
+          alignItems: 'center',
+          marginBottom: 20
+        }}
+        onPress={insertList}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Insert List</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={async () => {
+          await system.powersync.disconnectAndClear();
+        }}
+        style={{
+          backgroundColor: '#007AFF',
+          padding: 15,
+          borderRadius: 8,
+          alignItems: 'center',
+          marginBottom: 20
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Disconnect and Clear</Text>
+      </TouchableOpacity>
+
+      <FlatList
+        data={listRecords}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item: list }) => (
+          <View
+            style={{
+              marginBottom: 16,
               borderWidth: 1,
-              borderColor: '#ccc',
+              borderColor: "#ccc",
               borderRadius: 8,
               padding: 15,
-              backgroundColor: '#f9f9f9'
-            }}>
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '../list/[id]', params: { id: list.id } })}
+            >
               <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
                 {list.name}
               </Text>
-              <Text style={{ fontSize: 14, color: '#666', marginTop: 8 }}>
+              <Text style={{ fontSize: 14, color: '#666', marginTop: 4 }}>
                 {description(list.total_tasks ?? 0, list.completed_tasks ?? 0)}
               </Text>
-            </View>
-          )}
-        />
-      </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => deleteList(list.id)}
+              style={{
+                marginTop: 10,
+                padding: 8,
+                borderRadius: 6,
+                backgroundColor: '#ff3b30',
+                alignItems: 'center'
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Delete List</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
     </SafeAreaView>
   );
 }
