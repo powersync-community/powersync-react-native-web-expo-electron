@@ -9,8 +9,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:web": "expo export -p web --clear --output-dir dist && powersync-web copy-assets -o dist",
-    "electron:dev": "concurrently \"npm run web\" \"wait-on http://localhost:8081 && electron electron/main.js\"",
-    "electron:prod": "npm run build:web && electron electron/main.js",
+    "build:electron": "expo export -p web --clear --output-dir electron/public && powersync-web copy-assets -o electron/public",
+    "electron:dev": "npm run build:electron && electron electron/main.js",
+    "electron:prod": "npm run build:electron && electron electron/main.js",
     "electron:build": "electron-builder"
   },
   "build": {
@@ -48,6 +49,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@supabase/supabase-js": "~2.33.1",
+    "electron-serve": "^2.1.1",
     "expo": "~53.0.22",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",

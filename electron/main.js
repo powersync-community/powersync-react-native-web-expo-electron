@@ -1,19 +1,17 @@
-const { app, BrowserWindow } = require("electron");
-const path = require("path");
+import { app, BrowserWindow } from "electron";
+import serve from "electron-serve";
 
-let mainWindow;
+const loadURL = serve({directory: "public"});
 
-async function createWindow() {
+app.on("ready", async () => {
   const isDev = true;
 
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-  });
+  const mainWindow = new BrowserWindow();
 
-  mainWindow.loadURL("http://localhost:8081");
-}
+  await loadURL(mainWindow);
 
-app.on("ready", () => {
-  createWindow();
+  // The `-` is just the required hostname
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
 });
