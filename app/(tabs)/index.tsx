@@ -1,75 +1,146 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { FlatList, SafeAreaView, TouchableOpacity, View, Text, TextInput, Alert, Platform } from 'react-native';
+import { LIST_TABLE, ListRecord, TODO_TABLE } from '@/powersync/AppSchema';
+import { useSystem } from '@/powersync/system';
+import { useQuery } from '@/powersync/hooks';
+import { useEffect, useState } from 'react';
+import PowerSyncStatus from '@/components/PowerSyncStatus';
+import { useRouter } from 'expo-router';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const description = (total: number, completed: number = 0) => {
+  return `${total - completed} pending, ${completed} completed`;
+};
 
 export default function HomeScreen() {
+  const system = useSystem();
+  const router = useRouter();
+  const [newListName, setNewListName] = useState("");
+
+  useEffect(() => {
+    system.init();
+  }, []);
+
+  const { data: listRecords } = useQuery<ListRecord & { total_tasks: number; completed_tasks: number }>(`
+    SELECT
+      ${LIST_TABLE}.*, 
+      COUNT(${TODO_TABLE}.id) AS total_tasks, 
+      SUM(CASE WHEN ${TODO_TABLE}.completed = true THEN 1 ELSE 0 END) as completed_tasks
+    FROM
+      ${LIST_TABLE}
+    LEFT JOIN ${TODO_TABLE}
+      ON  ${LIST_TABLE}.id = ${TODO_TABLE}.list_id
+    GROUP BY
+      ${LIST_TABLE}.id
+    ORDER BY ${LIST_TABLE}.created_at DESC;
+  `);
+
+  const insertList = async () => {
+    if (!newListName.trim()) return; // don't insert empty names
+    await system.powersync.execute(`
+      INSERT INTO ${LIST_TABLE} (id, name, owner_id)
+      VALUES (uuid(), ?, ?);
+    `, [newListName, await system.connector.userId()]);
+    setNewListName(""); // clear input after inserting
+  };
+
+  const deleteList = async (listId: string) => {
+    await system.powersync.execute(`DELETE FROM ${LIST_TABLE} WHERE id = ?`, [listId]);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={{ flex: 1, padding: 16 }}>
+      <PowerSyncStatus />
+
+      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>
+        Todo Lists
+      </Text>
+
+      {/* Input for new list */}
+      <TextInput
+        placeholder="Enter new list name"
+        value={newListName}
+        onChangeText={setNewListName}
+        placeholderTextColor="#888"
+        style={{
+          borderWidth: 1,
+          borderColor: "#888",
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: Platform.OS === "ios" ? 12 : 8,
+          fontSize: 16,
+          marginBottom: 10,
+          color: "#000",
+          backgroundColor: "#fff",
+        }}
+      />
+
+      <TouchableOpacity
+        style={{
+          backgroundColor: '#007AFF',
+          padding: 15,
+          borderRadius: 8,
+          alignItems: 'center',
+          marginBottom: 20
+        }}
+        onPress={insertList}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Insert List</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={async () => {
+          await system.powersync.disconnectAndClear();
+        }}
+        style={{
+          backgroundColor: '#007AFF',
+          padding: 15,
+          borderRadius: 8,
+          alignItems: 'center',
+          marginBottom: 20
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>Disconnect and Clear</Text>
+      </TouchableOpacity>
+
+      <FlatList
+        data={listRecords}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item: list }) => (
+          <View
+            style={{
+              marginBottom: 16,
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 15,
+              backgroundColor: "#f9f9f9"
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '../list/[id]', params: { id: list.id } })}
+            >
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>
+                {list.name}
+              </Text>
+              <Text style={{ fontSize: 14, color: '#666', marginTop: 4 }}>
+                {description(list.total_tasks ?? 0, list.completed_tasks ?? 0)}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => deleteList(list.id)}
+              style={{
+                marginTop: 10,
+                padding: 8,
+                borderRadius: 6,
+                backgroundColor: '#ff3b30',
+                alignItems: 'center'
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Delete List</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});

@@ -2,6 +2,11 @@
   "expo": {
     "name": "powersync-react-native-expo-electron-web",
     "slug": "powersync-react-native-expo-electron-web",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,12 +21,15 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.powersyncreactnativeexpoelectronweb"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "publicPath": "./",
+      "baseUrl": "./"
     },
     "plugins": [
       "expo-router",

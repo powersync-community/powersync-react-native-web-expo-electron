@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# PowerSync + React Native Web & Electron Demo
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This application demonstrates a cross-platform List solution built with React Native Web and Electron, powered by PowerSync and Supabase. It showcases how to use a single React Native codebase to target mobile (iOS/Android), web, and desktop applications while maintaining real-time data synchronization capabilities.
 
 ## Get started
 
@@ -16,24 +16,33 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run the android app
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npm run android
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+4. Run the web app
 
-## Get a fresh project
+   ```bash
+   npm run web
+   ```
 
-When you're ready, run:
+5. Run the ios app
 
-```bash
-npm run reset-project
-```
+   ```bash
+   npm run ios
+   ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+6. Run the electron app
+
+   ```bash
+   npm run electron:dev
+   ```
+
+## ⚠️ Important Electron Runtime Notice
+
+The Electron app in this project is currently configured to run only in development mode with a live server. It cannot run from the statically bundled files (dist/ folder).
 
 ## Learn more
 
