@@ -73,10 +73,6 @@ export class System {
     const l = this.powersync.registerListener({
         statusChanged: (status) => {
             console.log('PowerSync status changed:', status);
-
-            // if (status!.downloadProgress?.downloadedFraction == 1 && status!.dataFlowStatus!.downloading) {
-            //     console.log("Something weird is happening!", JSON.stringify(status, null, 2));
-            // }
         }
     });
   }
