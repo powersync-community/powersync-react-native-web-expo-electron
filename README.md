@@ -4,43 +4,90 @@ This application demonstrates a cross-platform List solution built with React Na
 
 ## Get started
 
-1. Install dependencies
+### Set up Supabase Project
+
+Detailed instructions for integrating PowerSync with Supabase can be found in the [integration guide](https://docs.powersync.com/integration-guides/supabase-+-powersync). Below are the main steps required to get this demo running.
+
+Create a new Supabase project, and paste and run the contents of [database.sql](./database.sql) in the Supabase SQL editor.
+
+It does the following:
+
+1. Create `lists` and `todos` tables.
+2. Create a publication called `powersync` for `lists` and `todos`.
+3. Enable row level security and storage policies, allowing users to only view and edit their own data.
+4. Create a trigger to populate some sample data when a user registers.
+
+### Set up PowerSync Instance
+
+Create a new PowerSync instance, connecting to the database of the Supabase project. See instructions [here](https://docs.powersync.com/integration-guides/supabase-+-powersync#connect-powersync-to-your-supabase).
+
+Then deploy the following sync rules:
+
+```yaml
+bucket_definitions:
+  user_lists:
+    # Separate bucket per todo list
+    parameters: select id as list_id from lists where owner_id = request.user_id()
+    data:
+      - select * from lists where id = bucket.list_id
+      - select * from todos where list_id = bucket.list_id
+```
+
+### Configure the app
+
+#### 1. Set up environment variables:
+
+Copy the `.env.local.template` file:
+
+```bash
+cp .env.local.template .env.local
+```
+
+Then edit `.env.local` to insert your Supabase and PowerSync project credentials.
+
+#### 2. Install dependencies
 
    ```bash
    npm install
    ```
 
-2. Start the app
+#### 3. Start the app
 
    ```bash
    npx expo start
    ```
 
-3. Run the android app
+#### 4. Run the android app
 
    ```bash
    npm run android
    ```
 
-4. Run the web app
+#### 5. Run the web app
 
    ```bash
    npm run web
    ```
 
-5. Run the ios app
+#### 6. Run the ios app
 
    ```bash
    npm run ios
    ```
 
-6. Run the electron app
+#### 7. Run the electron app
 
-   ```bash
-   npm run electron:dev
-   ```
+This is required for the React Native Web implementation. Learn more in [our docs](https://docs.powersync.com/client-sdk-references/react-native-and-expo/react-native-web-support).
 
-## ⚠️ Important Electron Runtime Notice
+```bash
+npx powersync-web copy-assets
+```
+
+```bash
+npm run electron:dev
+```
+
+#### ⚠️ Important Electron Runtime Notice
 
 The Electron app in this project is currently configured to run only in development mode with a live server. It cannot run from the statically bundled files (dist/ folder).
 

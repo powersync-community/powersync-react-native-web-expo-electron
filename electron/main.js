@@ -1,5 +1,5 @@
-import { app, BrowserWindow } from "electron";
-import path from "path";
+const { app, BrowserWindow } = require("electron");
+const path = require("path");
 
 let mainWindow;
 
@@ -11,11 +11,7 @@ async function createWindow() {
     height: 600,
   });
 
-  mainWindow.loadURL(
-    isDev
-      ? "http://localhost:8081"
-      : `file://${path.join(__dirname, "dist", "index.html")}`
-  );
+  mainWindow.loadURL("http://localhost:8081");
 }
 
 app.on("ready", () => {
