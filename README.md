@@ -57,7 +57,7 @@ Then edit `.env.local` to insert your Supabase and PowerSync project credentials
    npx expo start
    ```
 
-#### 4. Run the android app
+#### 4. Run the Android app
 
    ```bash
    npm run android
@@ -69,13 +69,13 @@ Then edit `.env.local` to insert your Supabase and PowerSync project credentials
    npm run web
    ```
 
-#### 6. Run the ios app
+#### 6. Run the iOS app
 
    ```bash
    npm run ios
    ```
 
-#### 7. Run the electron app
+#### 7. Run the Electron app
 
 This is required for the React Native Web implementation. Learn more in [our docs](https://docs.powersync.com/client-sdk-references/react-native-and-expo/react-native-web-support).
 
@@ -89,7 +89,7 @@ npm run electron:dev
 
 #### ⚠️ Important Electron Runtime Notice
 
-The Electron app in this project is currently configured to run only in development mode with a live server. It cannot run from the statically bundled files (dist/ folder).
+The Electron app in this project is currently configured to run only in development mode with a live server. It cannot run from the statically bundled files (`dist/` folder).
 
 ## Learn more
 
