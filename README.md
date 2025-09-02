@@ -35,7 +35,7 @@ bucket_definitions:
 
 ### Configure the app
 
-#### 1. Set up environment variables:
+#### 1. Set up environment variables
 
 Copy the `.env.local.template` file:
 
@@ -51,31 +51,15 @@ Then edit `.env.local` to insert your Supabase and PowerSync project credentials
    npm install
    ```
 
-#### 3. Start the app
+#### 3. Run the App
 
-   ```bash
-   npx expo start
-   ```
+##### 3.1 Run the Web App
 
-#### 4. Run the Android app
+```bash
+npm run web
+```
 
-   ```bash
-   npm run android
-   ```
-
-#### 5. Run the web app
-
-   ```bash
-   npm run web
-   ```
-
-#### 6. Run the iOS app
-
-   ```bash
-   npm run ios
-   ```
-
-#### 7. Run the Electron app
+##### 3.2 Run the Electron App
 
 This is required for the React Native Web implementation. Learn more in [our docs](https://docs.powersync.com/client-sdk-references/react-native-and-expo/react-native-web-support).
 
@@ -83,8 +67,22 @@ This is required for the React Native Web implementation. Learn more in [our doc
 npx powersync-web copy-assets
 ```
 
+Then:
+
 ```bash
 npm run electron:dev
+```
+
+##### 3.3 Run the Android App
+
+```bash
+npm run android
+```
+
+##### 3.4 Run the iOS App
+
+```bash
+npm run ios
 ```
 
 #### ⚠️ Important Electron Runtime Notice
